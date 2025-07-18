@@ -216,10 +216,75 @@ class Visualization {
         // Draw legend
         this.drawLegend();
         
-        // Draw title
-        this.drawTitle(`PrimeFold: ${expr} (${primeCoords.length} primes, ${compositeCoords.length} composites)`);
+        // Draw stats
+        this.drawPrimeFoldStats(expr, primeCoords, compositeCoords);
         
         // Restore transform state
+        this.ctx.restore();
+    }
+    
+    drawPrimeFoldStats(expr, primeCoords, compositeCoords) {
+        this.ctx.save();
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        
+        // Parse expression to get f_x(n) and f_y(n)
+        const parts = expr.split(',').map(s => s.trim());
+        let exprX, exprY;
+        if (parts[0].includes('f_x(n) =')) {
+            exprX = parts[0].replace('f_x(n) =', '').trim();
+            exprY = parts[1].replace('f_y(n) =', '').trim();
+        } else if (parts[0].includes('f(n) =')) {
+            exprX = parts[0].replace('f(n) =', '').trim();
+            exprY = parts[1].replace('g(n) =', '').trim();
+        } else {
+            // Assume direct expressions
+            exprX = parts[0];
+            exprY = parts[1];
+        }
+        
+        // Create semi-transparent background for stats
+        const padding = 10;
+        const lineHeight = 20;
+        const statsHeight = lineHeight * 3 + padding * 2; // 3 lines: f_x, f_y, stats
+        
+        // Calculate width based on the longest text
+        const font1 = '14px Arial';
+        const font2 = '12px Arial';
+        this.ctx.font = font1;
+        const width1 = this.ctx.measureText(`f_x(n) = ${exprX}`).width;
+        const width2 = this.ctx.measureText(`f_y(n) = ${exprY}`).width;
+        this.ctx.font = font2;
+        const width3 = this.ctx.measureText(`${primeCoords.length} primes, ${compositeCoords.length} composites`).width;
+        
+        const statsWidth = Math.max(400, Math.max(width1, width2, width3) + 40);
+        
+        // Position on the left side with margin (similar to legend)
+        const margin = 10;
+        const statsX = margin;
+        const statsY = 10;
+        
+        // Draw background
+        this.ctx.fillStyle = 'rgba(42, 42, 58, 0.9)';
+        this.ctx.fillRect(statsX, statsY, statsWidth, statsHeight);
+        
+        // Draw border
+        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeRect(statsX, statsY, statsWidth, statsHeight);
+        
+        // Draw functions on first two lines
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.font = font1;
+        this.ctx.textAlign = 'left';
+        this.ctx.fillText(`f_x(n) = ${exprX}`, statsX + 20, statsY + 25);
+        this.ctx.fillText(`f_y(n) = ${exprY}`, statsX + 20, statsY + 45);
+        
+        // Draw stats on third line
+        const statsText = `${primeCoords.length} primes, ${compositeCoords.length} composites`;
+        this.ctx.fillStyle = '#e0e0e0';
+        this.ctx.font = font2;
+        this.ctx.fillText(statsText, statsX + 20, statsY + 65);
+        
         this.ctx.restore();
     }
     
