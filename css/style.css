@@ -701,20 +701,11 @@ input[type="checkbox"] {
 
 @media (max-width: 768px) {
     .main-container {
-        flex-direction: column;
-        height: 100vh;
+        display: none !important;
     }
     
-    .left-panel {
-        flex: 0 0 auto;
-        max-height: 50vh;
-        overflow-y: auto;
-        padding: 10px;
-    }
-    
-    .right-panel {
-        flex: 1;
-        min-height: 50vh;
+    .mobile-layout {
+        display: flex !important;
     }
     
     .visualization-header {
@@ -1169,5 +1160,406 @@ input[type="number"]::-ms-inner-spin-button {
 .btn.secondary:hover, button:hover {
   background: #5a5a6a;
   color: #fff;
+}
+
+/* Mobile Layout Styles */
+.mobile-layout {
+    display: none;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    background: rgba(26, 26, 46, 0.95);
+    backdrop-filter: blur(10px);
+    position: relative; /* Required for absolutely positioned children */
+}
+
+/* Mobile Header */
+.mobile-header {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    background: #2a2a3a;
+    border-bottom: 1px solid #3d3d4f;
+    flex-shrink: 0;
+}
+
+.mobile-header h1 {
+    color: #e0e0e0;
+    font-size: 16px;
+    margin: 0;
+    font-weight: 600;
+}
+
+/* Mobile Controls */
+.mobile-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: #1e1e2e;
+    border-bottom: 1px solid #3d3d4f;
+    flex-shrink: 0;
+}
+
+.mobile-mode-selector {
+    flex: 1;
+}
+
+.mobile-mode-selector select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #3d3d4f;
+    border-radius: 4px;
+    font-size: 14px;
+    background: #2a2a3a;
+    color: #e0e0e0;
+    cursor: pointer;
+}
+
+.mobile-start-button {
+    flex-shrink: 0;
+}
+
+.mobile-start-button .btn {
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    min-width: 80px;
+}
+
+/* Mobile Visualization */
+.mobile-visualization {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #1a1a2a;
+    padding: 8px;
+    position: relative;
+}
+
+#mobileVisualizationCanvas {
+    border: 2px solid #3d3d4f;
+    border-radius: 8px;
+    background: #0f0f1a;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+}
+
+/* Mobile Bottom Section */
+.mobile-bottom-section {
+    flex-shrink: 0;
+    background: #1e1e2e;
+    border-top: 1px solid #3d3d4f;
+}
+
+/* Mobile Function Display */
+.mobile-function-display {
+    padding: 8px 12px;
+    background: #2a2a3a;
+    border-bottom: 1px solid #3d3d4f;
+}
+
+.mobile-function-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.mobile-function-text {
+    flex: 1;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #e0e0e0;
+    background: #1a1a2a;
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid #3d3d4f;
+    word-break: break-all;
+}
+
+.mobile-function-score {
+    font-size: 11px;
+    color: #b0b0b0;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Mobile Action Buttons */
+.mobile-action-buttons {
+    display: flex;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #1e1e2e;
+    border-bottom: 1px solid #3d3d4f;
+}
+
+.mobile-action-buttons .btn {
+    flex: 1;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Mobile Section Toggles - Sticky at bottom of screen */
+.mobile-section-toggles {
+    display: none; /* Hidden by default */
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 8px 12px;
+    background: #2a2a3a;
+    border-top: 1px solid #3d3d4f;
+    position: fixed; /* Changed to fixed for better positioning */
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999; /* Very high z-index to ensure visibility */
+    flex-shrink: 0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+    height: auto; /* Ensure buttons don't extend beyond screen */
+    max-height: 60px; /* Limit height to prevent overflow */
+    transform: translateY(0); /* Ensure buttons are at the very bottom */
+}
+
+/* Show mobile section toggles only in mobile layout */
+.mobile-layout .mobile-section-toggles {
+    display: flex !important;
+}
+
+.mobile-toggle {
+    flex: 1;
+    min-width: 60px;
+    padding: 8px 6px;
+    background: #4a4a5a;
+    color: #e0e0e0;
+    border: none;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    text-align: center;
+}
+
+.mobile-toggle:hover {
+    background: #5a5a6a;
+    transform: translateY(-1px);
+}
+
+.mobile-toggle.active {
+    background: #667eea;
+    color: white;
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+}
+
+/* Mobile Section Content */
+.mobile-section-content {
+    display: none;
+    background: #1e1e2e;
+    border-bottom: 1px solid #3d3d4f;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex-shrink: 0;
+}
+
+.mobile-section-content.active {
+    display: block;
+}
+
+.mobile-section-inner {
+    padding: 12px;
+}
+
+.mobile-section-inner h3 {
+    color: #e0e0e0;
+    margin-bottom: 12px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Mobile-specific adjustments for existing components */
+.mobile-section-inner .section {
+    padding: 8px;
+    margin-bottom: 8px;
+    background: #2a2a3a;
+    border-radius: 6px;
+}
+
+.mobile-section-inner .section h3 {
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.mobile-section-inner .param-row {
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.mobile-section-inner .param-group {
+    width: 100%;
+}
+
+.mobile-section-inner .param-group label {
+    font-size: 11px;
+    margin-bottom: 2px;
+}
+
+.mobile-section-inner .param-group select,
+.mobile-section-inner .param-group input[type="number"] {
+    font-size: 12px;
+    padding: 6px 8px;
+}
+
+.mobile-section-inner .btn {
+    font-size: 12px;
+    padding: 6px 10px;
+}
+
+.mobile-section-inner .checkbox-label {
+    font-size: 11px;
+}
+
+.mobile-section-inner .stat-row {
+    flex-direction: column;
+    gap: 4px;
+}
+
+.mobile-section-inner .stat-item {
+    padding: 4px 6px;
+}
+
+.mobile-section-inner .stat-label {
+    font-size: 10px;
+}
+
+.mobile-section-inner .stat-value {
+    font-size: 10px;
+}
+
+.mobile-section-inner .log-container {
+    max-height: 150px;
+    font-size: 11px;
+}
+
+.mobile-section-inner .log-entry {
+    font-size: 10px;
+    padding: 2px 0;
+}
+
+/* Mobile help content scrolling */
+.mobile-section-inner p {
+    margin-bottom: 8px;
+    line-height: 1.4;
+    font-size: 11px;
+}
+
+.mobile-section-inner h3 {
+    margin-top: 12px;
+    margin-bottom: 6px;
+}
+
+/* Mobile scrollbar styling */
+.mobile-section-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.mobile-section-content::-webkit-scrollbar-track {
+    background: #1e1e2e;
+}
+
+.mobile-section-content::-webkit-scrollbar-thumb {
+    background: #3d3d4f;
+    border-radius: 2px;
+}
+
+.mobile-section-content::-webkit-scrollbar-thumb:hover {
+    background: #4d4d5f;
+}
+
+/* Mobile View Mode - Hide sections and expand visualization */
+.mobile-layout.view-mode .mobile-section-content {
+    display: none !important;
+}
+
+.mobile-layout.view-mode .mobile-section-content.active {
+    display: none !important;
+}
+
+.mobile-layout.view-mode .mobile-visualization {
+    flex: 1;
+    height: calc(100vh - 200px); /* Account for header, controls, function display, and sticky buttons */
+}
+
+.mobile-layout.view-mode #mobileVisualizationCanvas {
+    height: 100% !important;
+}
+
+.mobile-layout.view-mode .mobile-bottom-section {
+    padding-bottom: 60px; /* Keep space for sticky buttons even in view mode */
+}
+
+/* Mobile Bottom Section - Content area above buttons */
+.mobile-bottom-section {
+    flex-shrink: 0;
+    background: #1e1e2e;
+    border-top: 1px solid #3d3d4f;
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* Allow proper flex shrinking */
+    padding-bottom: 60px; /* Space for sticky buttons */
+}
+
+/* Mobile Action Buttons - Hidden in mobile view */
+.mobile-action-buttons {
+    display: none; /* Hide export button in mobile view */
+}
+
+/* Mobile Layout - Sticky Bottom Buttons */
+/* Note: position: relative is now in the main .mobile-layout definition above */
+
+/* Ensure mobile layout doesn't overflow viewport */
+.mobile-layout {
+    overflow: hidden; /* Prevent any overflow that might hide buttons */
+}
+
+/* Mobile toggle button styling - icon over text */
+.mobile-toggle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 8px 6px;
+    font-size: 10px;
+    min-width: 50px;
+    text-align: center;
+}
+
+.mobile-toggle span {
+    font-size: 16px;
+    line-height: 1;
+    margin-bottom: 2px;
+}
+
+/* Responsive breakpoints - Desktop overrides */
+@media (min-width: 768px) {
+    .mobile-layout {
+        display: none !important;
+    }
+    
+    .main-container {
+        display: flex !important;
+    }
 }
 

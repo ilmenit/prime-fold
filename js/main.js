@@ -87,9 +87,14 @@ class PrimeFoldApp {
     }
     
     setupEventHandlers() {
-        // Mode selection
+        // Mode selection - also sync mobile selector
         document.getElementById('modeSelect').addEventListener('change', (e) => {
             this.setMode(e.target.value);
+            // Sync mobile selector to match desktop
+            const mobileModeSelect = document.getElementById('mobileModeSelect');
+            if (mobileModeSelect) {
+                mobileModeSelect.value = e.target.value;
+            }
         });
         
         // Function selectors
@@ -299,6 +304,7 @@ class PrimeFoldApp {
             const functionY = document.getElementById('functionY');
             const lastGeneratedFunction = document.getElementById('lastGeneratedFunction');
             const displayPoints = document.getElementById('displayPoints');
+            const primefoldFunctionSelect = document.getElementById('primefoldFunctionSelect');
             
             if (functionX) functionX.textContent = defaultX;
             if (functionY) functionY.textContent = defaultY;
@@ -306,6 +312,9 @@ class PrimeFoldApp {
             if (functionY) functionY.contentEditable = false;
             if (lastGeneratedFunction) lastGeneratedFunction.textContent = `f_x(n) = ${defaultX}, f_y(n) = ${defaultY}`;
             if (displayPoints) displayPoints.value = '10000';
+            
+            // 🔧 FIX: Reset PrimeFold function selector to default
+            if (primefoldFunctionSelect) primefoldFunctionSelect.value = 'ulam-sind';
         } else {
             const defaultPrimeGen = 'n * n + n + 41';
             const mainFunction = document.getElementById('mainFunction');
@@ -347,6 +356,11 @@ class PrimeFoldApp {
         this.showDefaultVisualization();
         // Update statistics title
         this.updateStatisticsTitle();
+        
+        // Update mobile UI if available
+        if (mobileUI) {
+            mobileUI.syncMobileDesktop();
+        }
         
         this.log(`Switched to ${mode} mode`, 'info');
     }
@@ -977,6 +991,11 @@ class PrimeFoldApp {
             // Update current score to match best score when a new best is found
             // This ensures Score and Best are synchronized
             document.getElementById('currentScore').textContent = bestScoreDisplay;
+            
+            // Update mobile UI if available
+            if (mobileUI) {
+                mobileUI.syncMobileDesktop();
+            }
         }
     }
     
@@ -995,6 +1014,11 @@ class PrimeFoldApp {
         
         console.log('Optimization completed:', result);
         this.log('Optimization completed successfully', 'success');
+        
+        // Update mobile UI if available
+        if (mobileUI) {
+            mobileUI.syncMobileDesktop();
+        }
     }
     
     updateVisualization(currentExpr, bestExpr) {
@@ -1179,26 +1203,49 @@ Usage:
     log(message, type = 'info') {
         try {
             const logContainer = document.getElementById('logContainer');
-            if (!logContainer) {
-                console.warn('Log container not found, logging to console instead');
-                console.log(`[${type.toUpperCase()}] ${message}`);
-                return;
-            }
-            
-            const logEntry = document.createElement('div');
-            logEntry.className = `log-entry ${type}`;
+            const mobileLogContainer = document.getElementById('mobile-logContainer');
             
             const timestamp = new Date().toLocaleTimeString();
-            logEntry.textContent = `[${timestamp}] ${message}`;
+            const logText = `[${timestamp}] ${message}`;
             
-            logContainer.appendChild(logEntry);
+            // Add to desktop log if available
+            if (logContainer) {
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${type}`;
+                logEntry.textContent = logText;
+                
+                logContainer.appendChild(logEntry);
+                
+                // Auto-scroll to bottom
+                logContainer.scrollTop = logContainer.scrollHeight;
+                
+                // Keep only last 50 entries
+                while (logContainer.children.length > 50) {
+                    logContainer.removeChild(logContainer.firstChild);
+                }
+            }
             
-            // Auto-scroll to bottom
-            logContainer.scrollTop = logContainer.scrollHeight;
+            // Add to mobile log if available
+            if (mobileLogContainer) {
+                const mobileLogEntry = document.createElement('div');
+                mobileLogEntry.className = `log-entry ${type}`;
+                mobileLogEntry.textContent = logText;
+                
+                mobileLogContainer.appendChild(mobileLogEntry);
+                
+                // Auto-scroll to bottom
+                mobileLogContainer.scrollTop = mobileLogContainer.scrollHeight;
+                
+                // Keep only last 50 entries
+                while (mobileLogContainer.children.length > 50) {
+                    mobileLogContainer.removeChild(mobileLogContainer.firstChild);
+                }
+            }
             
-            // Keep only last 50 entries
-            while (logContainer.children.length > 50) {
-                logContainer.removeChild(logContainer.firstChild);
+            // If neither container is available, log to console
+            if (!logContainer && !mobileLogContainer) {
+                console.warn('No log container found, logging to console instead');
+                console.log(`[${type.toUpperCase()}] ${message}`);
             }
         } catch (error) {
             console.error('Error in log function:', error);
@@ -1210,10 +1257,17 @@ Usage:
     clearLog() {
         try {
             const logContainer = document.getElementById('logContainer');
+            const mobileLogContainer = document.getElementById('mobile-logContainer');
+            
             if (logContainer) {
                 logContainer.innerHTML = '';
-                this.log('Log cleared', 'info');
             }
+            
+            if (mobileLogContainer) {
+                mobileLogContainer.innerHTML = '';
+            }
+            
+            this.log('Log cleared', 'info');
         } catch (error) {
             console.error('Error clearing log:', error);
         }
@@ -1286,17 +1340,43 @@ Usage:
             statsTitle.textContent = `Statistics for Sample Size: ${sampleSize}`;
         }
     }
+    
+
 }
 
 // Initialize application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    window.app = new PrimeFoldApp();
+    const app = new PrimeFoldApp();
+    window.app = app;
+    
+    // Initialize mobile UI if we're on mobile
+    if (window.innerWidth <= 768) {
+        mobileUI = new MobileUI(app);
+    }
+    
+    // Handle window resize
+    window.addEventListener('resize', () => {
+        const isMobile = window.innerWidth <= 768;
+        
+        if (isMobile && !mobileUI) {
+            // Switch to mobile
+            mobileUI = new MobileUI(app);
+        } else if (!isMobile && mobileUI) {
+            // Switch to desktop - clean up mobile resources
+            mobileUI.cleanup();
+            mobileUI = null;
+        }
+    });
+    
     // --- ADDED: Force recalculation after DOM/UI is fully set up ---
     setTimeout(() => {
-        if (window.app.currentMode === 'primefold') {
-            window.app.updatePrimeFoldScores();
+        if (app.currentMode === 'primefold') {
+            app.updatePrimeFoldScores();
         }
     }, 0);
+    
+    // Make app globally accessible for debugging
+    window.primeFoldApp = app;
 });
 
 // --- Fitness Function Section Logic ---
@@ -1619,4 +1699,636 @@ class ResizablePanels {
 // Initialize resizable panels
 window.addEventListener('DOMContentLoaded', () => {
     window.resizablePanels = new ResizablePanels();
-}); 
+});
+
+// Mobile-specific functionality
+class MobileUI {
+    constructor(app) {
+        this.app = app;
+        this.currentSection = 'generate';
+        this.initialize();
+    }
+    
+    initialize() {
+        this.setupMobileEventHandlers();
+        this.syncMobileDesktop();
+        this.setupMobileVisualization();
+        
+        // Set View as the default section for better mobile experience
+        this.showSection('view');
+        
+        // Set up periodic sync for mobile UI
+        this.mobileSyncInterval = setInterval(() => {
+            this.syncMobileDesktop();
+        }, 500); // Sync every 500ms
+    }
+    
+    setupMobileEventHandlers() {
+        // Mobile mode selector - bidirectional sync with desktop
+        const mobileModeSelect = document.getElementById('mobileModeSelect');
+        const desktopModeSelect = document.getElementById('modeSelect');
+        
+        if (mobileModeSelect) {
+            mobileModeSelect.addEventListener('change', (e) => {
+                this.app.setMode(e.target.value);
+                // Sync desktop selector to match mobile
+                if (desktopModeSelect) {
+                    desktopModeSelect.value = e.target.value;
+                }
+                this.syncMobileDesktop();
+            });
+        }
+        
+
+        
+        // Mobile section toggles
+        document.querySelectorAll('.mobile-toggle').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const section = toggle.dataset.section;
+                this.showSection(section);
+            });
+        });
+        
+        // Mobile generate button
+        const mobileGenerateBtn = document.getElementById('mobileGenerateBtn');
+        if (mobileGenerateBtn) {
+            mobileGenerateBtn.addEventListener('click', () => {
+                if (this.app.isRunning) {
+                    this.app.stopOptimization();
+                } else {
+                    this.app.startOptimization();
+                }
+                this.syncMobileDesktop();
+            });
+        }
+        
+        // Mobile export button
+        const mobileExportBtn = document.getElementById('mobileExportBtn');
+        if (mobileExportBtn) {
+            mobileExportBtn.addEventListener('click', () => {
+                this.app.exportFunction();
+            });
+        }
+        
+        // Mobile log buttons
+        const mobileClearLogBtn = document.getElementById('mobile-clearLogBtn');
+        if (mobileClearLogBtn) {
+            mobileClearLogBtn.addEventListener('click', () => {
+                this.app.clearLog();
+            });
+        }
+        
+        const mobileCopyLogBtn = document.getElementById('mobile-copyLogBtn');
+        if (mobileCopyLogBtn) {
+            mobileCopyLogBtn.addEventListener('click', () => {
+                this.app.copyLogToClipboard();
+            });
+        }
+        
+        // Mobile parameter synchronization
+        this.setupMobileParameterSync();
+        
+        // Mobile function selectors
+        this.setupMobileFunctionSelectors();
+    }
+    
+    setupMobileParameterSync() {
+        // Sync algorithm parameters
+        const desktopAlgorithm = document.getElementById('algorithm');
+        const mobileAlgorithm = document.getElementById('mobile-algorithm');
+        
+        if (desktopAlgorithm && mobileAlgorithm) {
+            desktopAlgorithm.addEventListener('change', () => {
+                mobileAlgorithm.value = desktopAlgorithm.value;
+                this.app.updateAlgorithmParams();
+            });
+            
+            mobileAlgorithm.addEventListener('change', () => {
+                desktopAlgorithm.value = mobileAlgorithm.value;
+                this.app.updateAlgorithmParams();
+            });
+        }
+        
+        // Sync other parameters
+        const paramMappings = [
+            ['iterations', 'mobile-iterations'],
+            ['sampleSize', 'mobile-sampleSize'],
+            ['historyLength', 'mobile-historyLength'],
+            ['populationSize', 'mobile-populationSize'],
+            ['startTemp', 'mobile-startTemp'],
+            ['displayPoints', 'mobile-displayPoints'],
+            ['pointSize', 'mobile-pointSize']
+        ];
+        
+        paramMappings.forEach(([desktopId, mobileId]) => {
+            const desktopElement = document.getElementById(desktopId);
+            const mobileElement = document.getElementById(mobileId);
+            
+            if (desktopElement && mobileElement) {
+                desktopElement.addEventListener('change', () => {
+                    mobileElement.value = desktopElement.value;
+                    this.handleParameterChange(desktopId);
+                });
+                
+                mobileElement.addEventListener('change', () => {
+                    desktopElement.value = mobileElement.value;
+                    this.handleParameterChange(desktopId);
+                });
+            }
+        });
+        
+        // Sync checkboxes
+        const checkboxMappings = [
+            ['showNonPrimes', 'mobile-showNonPrimes'],
+            ['scalePoints', 'mobile-scalePoints']
+        ];
+        
+        checkboxMappings.forEach(([desktopId, mobileId]) => {
+            const desktopElement = document.getElementById(desktopId);
+            const mobileElement = document.getElementById(mobileId);
+            
+            if (desktopElement && mobileElement) {
+                desktopElement.addEventListener('change', () => {
+                    mobileElement.checked = desktopElement.checked;
+                    this.handleParameterChange(desktopId);
+                });
+                
+                mobileElement.addEventListener('change', () => {
+                    desktopElement.checked = mobileElement.checked;
+                    this.handleParameterChange(desktopId);
+                });
+            }
+        });
+        
+        // Sync fitness function parameters
+        this.setupMobileFitnessSync();
+    }
+    
+    setupMobileFitnessSync() {
+        // Sync fitness metrics
+        FITNESS_METRICS.forEach(m => {
+            const desktopMetric = document.getElementById(`metric-${m.key}`);
+            const mobileMetric = document.getElementById(`mobile-metric-${m.key}`);
+            const desktopWeight = document.getElementById(`weight-${m.key}`);
+            const mobileWeight = document.getElementById(`mobile-weight-${m.key}`);
+            
+            // Sync metric checkboxes
+            if (desktopMetric && mobileMetric) {
+                desktopMetric.addEventListener('change', () => {
+                    mobileMetric.checked = desktopMetric.checked;
+                    updateFitnessConfigFromUI();
+                });
+                
+                mobileMetric.addEventListener('change', () => {
+                    desktopMetric.checked = mobileMetric.checked;
+                    updateFitnessConfigFromUI();
+                });
+            }
+            
+            // Sync weight inputs
+            if (desktopWeight && mobileWeight) {
+                desktopWeight.addEventListener('input', () => {
+                    mobileWeight.value = desktopWeight.value;
+                    updateFitnessConfigFromUI();
+                });
+                
+                mobileWeight.addEventListener('input', () => {
+                    desktopWeight.value = mobileWeight.value;
+                    updateFitnessConfigFromUI();
+                });
+            }
+            
+            // Sync threshold for area coverage
+            if (m.hasThreshold) {
+                const desktopThreshold = document.getElementById(`threshold-${m.key}`);
+                const mobileThreshold = document.getElementById(`mobile-threshold-${m.key}`);
+                
+                if (desktopThreshold && mobileThreshold) {
+                    desktopThreshold.addEventListener('input', () => {
+                        mobileThreshold.value = desktopThreshold.value;
+                        updateFitnessConfigFromUI();
+                    });
+                    
+                    mobileThreshold.addEventListener('input', () => {
+                        desktopThreshold.value = mobileThreshold.value;
+                        updateFitnessConfigFromUI();
+                    });
+                }
+            }
+        });
+        
+        // Sync symmetry checkbox
+        const desktopSymmetry = document.getElementById('enforceSymmetry');
+        const mobileSymmetry = document.getElementById('mobile-enforceSymmetry');
+        
+        if (desktopSymmetry && mobileSymmetry) {
+            desktopSymmetry.addEventListener('change', () => {
+                mobileSymmetry.checked = desktopSymmetry.checked;
+            });
+            
+            mobileSymmetry.addEventListener('change', () => {
+                desktopSymmetry.checked = mobileSymmetry.checked;
+            });
+        }
+        
+        // Sync fitness reset button
+        const desktopFitnessReset = document.getElementById('fitness-reset-btn');
+        const mobileFitnessReset = document.getElementById('mobile-fitness-reset-btn');
+        
+        if (desktopFitnessReset && mobileFitnessReset) {
+            mobileFitnessReset.addEventListener('click', () => {
+                resetFitnessConfig();
+            });
+        }
+    }
+    
+    setupMobileFunctionSelectors() {
+        // Sync function selectors
+        const desktopFunctionSelect = document.getElementById('functionSelect');
+        const mobileFunctionSelect = document.getElementById('mobile-functionSelect');
+        
+        if (desktopFunctionSelect && mobileFunctionSelect) {
+            desktopFunctionSelect.addEventListener('change', () => {
+                mobileFunctionSelect.value = desktopFunctionSelect.value;
+                this.app.handleFunctionSelection(desktopFunctionSelect.value);
+            });
+            
+            mobileFunctionSelect.addEventListener('change', () => {
+                desktopFunctionSelect.value = mobileFunctionSelect.value;
+                this.app.handleFunctionSelection(mobileFunctionSelect.value);
+            });
+        }
+        
+        // Sync PrimeFold function selectors
+        const desktopPrimeFoldSelect = document.getElementById('primefoldFunctionSelect');
+        const mobilePrimeFoldSelect = document.getElementById('mobile-primefoldFunctionSelect');
+        
+        if (desktopPrimeFoldSelect && mobilePrimeFoldSelect) {
+            desktopPrimeFoldSelect.addEventListener('change', () => {
+                mobilePrimeFoldSelect.value = desktopPrimeFoldSelect.value;
+                this.app.handlePrimeFoldFunctionSelection(desktopPrimeFoldSelect.value);
+            });
+            
+            mobilePrimeFoldSelect.addEventListener('change', () => {
+                desktopPrimeFoldSelect.value = mobilePrimeFoldSelect.value;
+                this.app.handlePrimeFoldFunctionSelection(mobilePrimeFoldSelect.value);
+            });
+        }
+    }
+    
+    handleParameterChange(parameterId) {
+        switch (parameterId) {
+            case 'sampleSize':
+                this.app.reloadDataForNewSampleSize();
+                this.app.updateVisualizationFromMainFunction();
+                this.app.updateStatisticsTitle();
+                break;
+            case 'displayPoints':
+            case 'showNonPrimes':
+            case 'scalePoints':
+            case 'pointSize':
+                this.app.updateVisualizationFromMainFunction();
+                break;
+            case 'algorithm':
+                this.app.updateAlgorithmParams();
+                break;
+        }
+    }
+    
+    showSection(sectionName) {
+        // Update toggle buttons
+        document.querySelectorAll('.mobile-toggle').forEach(toggle => {
+            toggle.classList.remove('active');
+        });
+        document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
+        
+        // Handle View mode specially
+        if (sectionName === 'view') {
+            // Add view-mode class to mobile layout
+            const mobileLayout = document.querySelector('.mobile-layout');
+            if (mobileLayout) {
+                mobileLayout.classList.add('view-mode');
+            }
+            this.currentSection = sectionName;
+        } else {
+            // Remove view-mode class when switching to other sections
+            const mobileLayout = document.querySelector('.mobile-layout');
+            if (mobileLayout) {
+                mobileLayout.classList.remove('view-mode');
+            }
+            
+            // Show/hide content for normal sections
+            document.querySelectorAll('.mobile-section-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(sectionName + 'Content').classList.add('active');
+            
+            this.currentSection = sectionName;
+        }
+        
+        // 🔧 FIX: Resize canvas after section change to fill new available space
+        // Use a small delay to account for CSS transitions
+        setTimeout(() => {
+            if (this.mobileVisualization) {
+                this.mobileVisualization.resize();
+            }
+        }, 150); // 150ms delay to allow CSS transitions to complete
+    }
+    
+    syncMobileDesktop() {
+        // Note: Mode selector sync is handled by event listeners to avoid race conditions
+        
+        // Sync generate button (now in top controls)
+        const desktopGenerateBtn = document.getElementById('generateBtn');
+        const mobileGenerateBtn = document.getElementById('mobileGenerateBtn');
+        
+        if (desktopGenerateBtn && mobileGenerateBtn) {
+            mobileGenerateBtn.textContent = desktopGenerateBtn.textContent;
+            mobileGenerateBtn.className = desktopGenerateBtn.className;
+        }
+        
+        // 🔧 FIX: Sync function selectors to ensure they match desktop state
+        const desktopFunctionSelect = document.getElementById('functionSelect');
+        const mobileFunctionSelect = document.getElementById('mobile-functionSelect');
+        const desktopPrimefoldSelect = document.getElementById('primefoldFunctionSelect');
+        const mobilePrimefoldSelect = document.getElementById('mobile-primefoldFunctionSelect');
+        
+        if (desktopFunctionSelect && mobileFunctionSelect) {
+            mobileFunctionSelect.value = desktopFunctionSelect.value;
+        }
+        if (desktopPrimefoldSelect && mobilePrimefoldSelect) {
+            mobilePrimefoldSelect.value = desktopPrimefoldSelect.value;
+        }
+        
+        // Sync function display
+        this.updateMobileFunctionDisplay();
+        
+        // Sync progress
+        this.updateMobileProgress();
+        
+        // Sync scores
+        this.updateMobileScores();
+        
+        // Sync statistics
+        this.updateMobileStats();
+        
+        // Sync visualization
+        this.syncMobileVisualization();
+    }
+    
+    updateMobileFunctionDisplay() {
+        const mobileFunctionLabel = document.getElementById('mobileFunctionLabel');
+        const mobileFunctionText = document.getElementById('mobileFunctionText');
+        const mobileFunctionScore = document.getElementById('mobileFunctionScore');
+        
+        if (this.app.currentMode === 'primefold') {
+            const functionX = document.getElementById('functionX');
+            const functionY = document.getElementById('functionY');
+            const combinedScore = document.getElementById('primefoldCombinedScore');
+            
+            if (functionX && functionY && mobileFunctionText) {
+                mobileFunctionText.textContent = `${functionX.textContent}, ${functionY.textContent}`;
+            }
+            
+            if (combinedScore && mobileFunctionScore) {
+                mobileFunctionScore.textContent = combinedScore.textContent;
+            }
+        } else {
+            const mainFunction = document.getElementById('mainFunction');
+            const mainFunctionScore = document.getElementById('mainFunctionScore');
+            
+            if (mainFunction && mobileFunctionText) {
+                // Ensure we get the actual function text, not just "n"
+                const functionText = mainFunction.textContent.trim();
+                if (functionText && functionText !== 'n') {
+                    mobileFunctionText.textContent = functionText;
+                }
+            }
+            
+            if (mainFunctionScore && mobileFunctionScore) {
+                mobileFunctionScore.textContent = mainFunctionScore.textContent;
+            }
+        }
+        
+        // Also sync the mobile function displays in the settings section
+        this.syncMobileFunctionDisplays();
+    }
+    
+    syncMobileFunctionDisplays() {
+        // Sync PrimeFold function displays
+        const desktopFunctionX = document.getElementById('functionX');
+        const mobileFunctionX = document.getElementById('mobile-functionX');
+        const desktopFunctionY = document.getElementById('functionY');
+        const mobileFunctionY = document.getElementById('mobile-functionY');
+        
+        if (desktopFunctionX && mobileFunctionX) {
+            mobileFunctionX.textContent = desktopFunctionX.textContent;
+        }
+        
+        if (desktopFunctionY && mobileFunctionY) {
+            mobileFunctionY.textContent = desktopFunctionY.textContent;
+        }
+        
+        // Sync PrimeGen function display
+        const desktopMainFunction = document.getElementById('mainFunction');
+        const mobileMainFunction = document.getElementById('mobile-mainFunction');
+        
+        if (desktopMainFunction && mobileMainFunction) {
+            const functionText = desktopMainFunction.textContent.trim();
+            if (functionText && functionText !== 'n') {
+                mobileMainFunction.textContent = functionText;
+            }
+        }
+        
+        // Sync scores
+        const desktopMainFunctionScore = document.getElementById('mainFunctionScore');
+        const mobileMainFunctionScore = document.getElementById('mobile-mainFunctionScore');
+        
+        if (desktopMainFunctionScore && mobileMainFunctionScore) {
+            mobileMainFunctionScore.textContent = desktopMainFunctionScore.textContent;
+        }
+        
+        const desktopPrimefoldCombinedScore = document.getElementById('primefoldCombinedScore');
+        const mobilePrimefoldCombinedScore = document.getElementById('mobile-primefoldCombinedScore');
+        
+        if (desktopPrimefoldCombinedScore && mobilePrimefoldCombinedScore) {
+            mobilePrimefoldCombinedScore.textContent = desktopPrimefoldCombinedScore.textContent;
+        }
+        
+        // Show/hide mobile function displays based on mode
+        this.updateMobileFunctionVisibility();
+    }
+    
+    updateMobileFunctionVisibility() {
+        const mobilePrimefoldFunctionSelector = document.getElementById('mobile-primefoldFunctionSelector');
+        const mobilePrimegenFunctionSelector = document.getElementById('mobile-primegenFunctionSelector');
+        const mobilePrimefoldFunctionDisplay = document.getElementById('mobile-primefoldFunctionDisplay');
+        const mobilePrimegenFunctionDisplay = document.getElementById('mobile-primegenFunctionDisplay');
+        const mobileFitnessSection = document.getElementById('mobile-fitness-section');
+        const mobileSymmetryOption = document.getElementById('mobile-symmetry-option');
+        
+        if (this.app.currentMode === 'primefold') {
+            // Show PrimeFold elements
+            if (mobilePrimefoldFunctionSelector) mobilePrimefoldFunctionSelector.style.display = 'block';
+            if (mobilePrimefoldFunctionDisplay) mobilePrimefoldFunctionDisplay.style.display = 'block';
+            if (mobileFitnessSection) mobileFitnessSection.style.display = 'block';
+            if (mobileSymmetryOption) mobileSymmetryOption.style.display = 'block';
+            
+            // Hide PrimeGen elements
+            if (mobilePrimegenFunctionSelector) mobilePrimegenFunctionSelector.style.display = 'none';
+            if (mobilePrimegenFunctionDisplay) mobilePrimegenFunctionDisplay.style.display = 'none';
+        } else {
+            // Show PrimeGen elements
+            if (mobilePrimegenFunctionSelector) mobilePrimegenFunctionSelector.style.display = 'block';
+            if (mobilePrimegenFunctionDisplay) mobilePrimegenFunctionDisplay.style.display = 'block';
+            
+            // Hide PrimeFold elements
+            if (mobilePrimefoldFunctionSelector) mobilePrimefoldFunctionSelector.style.display = 'none';
+            if (mobilePrimefoldFunctionDisplay) mobilePrimefoldFunctionDisplay.style.display = 'none';
+            if (mobileFitnessSection) mobileFitnessSection.style.display = 'none';
+            if (mobileSymmetryOption) mobileSymmetryOption.style.display = 'none';
+        }
+    }
+    
+    updateMobileProgress() {
+        const desktopProgressFill = document.getElementById('progressFill');
+        const mobileProgressFill = document.getElementById('mobile-progressFill');
+        const desktopProgressText = document.getElementById('progressText');
+        const mobileProgressText = document.getElementById('mobile-progressText');
+        
+        if (desktopProgressFill && mobileProgressFill) {
+            mobileProgressFill.style.width = desktopProgressFill.style.width;
+        }
+        
+        if (desktopProgressText && mobileProgressText) {
+            mobileProgressText.textContent = desktopProgressText.textContent;
+        }
+    }
+    
+    updateMobileScores() {
+        const desktopCurrentScore = document.getElementById('currentScore');
+        const mobileCurrentScore = document.getElementById('mobile-currentScore');
+        const desktopBestScore = document.getElementById('bestScore');
+        const mobileBestScore = document.getElementById('mobile-bestScore');
+        
+        if (desktopCurrentScore && mobileCurrentScore) {
+            mobileCurrentScore.textContent = desktopCurrentScore.textContent;
+        }
+        
+        if (desktopBestScore && mobileBestScore) {
+            mobileBestScore.textContent = desktopBestScore.textContent;
+        }
+    }
+    
+    setupMobileVisualization() {
+        const mobileCanvas = document.getElementById('mobileVisualizationCanvas');
+        if (mobileCanvas) {
+            // Create a separate visualization instance for mobile
+            this.mobileVisualization = new Visualization(mobileCanvas);
+            
+            // Initial sync with main visualization
+            this.syncMobileVisualization();
+            
+            // Set up periodic sync for mobile visualization
+            this.mobileVisualizationInterval = setInterval(() => {
+                this.syncMobileVisualization();
+            }, 1000); // Sync every second
+        }
+    }
+    
+    syncMobileVisualization() {
+        if (this.mobileVisualization && this.app.visualization) {
+            try {
+                // Get current visualization options
+                const showNonPrimes = document.getElementById('showNonPrimes')?.checked || 
+                                    document.getElementById('mobile-showNonPrimes')?.checked || false;
+                const scalePoints = document.getElementById('scalePoints')?.checked || 
+                                  document.getElementById('mobile-scalePoints')?.checked || false;
+                const pointSize = parseFloat(document.getElementById('pointSize')?.value || 
+                                           document.getElementById('mobile-pointSize')?.value || 1.5);
+                
+                // Update mobile visualization based on current mode
+                if (this.app.currentMode === 'primefold') {
+                    const functionX = document.getElementById('functionX')?.textContent || '';
+                    const functionY = document.getElementById('functionY')?.textContent || '';
+                    const combinedFunction = `${functionX}, ${functionY}`;
+                    
+                    if (functionX && functionY) {
+                        this.mobileVisualization.updatePrimeFold(combinedFunction, { 
+                            showNonPrimes, 
+                            scalePoints, 
+                            pointSize 
+                        });
+                    }
+                } else {
+                    const mainFunction = document.getElementById('mainFunction')?.textContent || '';
+                    if (mainFunction) {
+                        this.mobileVisualization.updatePrimeGen(mainFunction);
+                    }
+                }
+            } catch (error) {
+                console.error('Error syncing mobile visualization:', error);
+            }
+        }
+    }
+    
+    // Clean up mobile visualization interval when switching to desktop
+    cleanupMobileVisualization() {
+        if (this.mobileVisualizationInterval) {
+            clearInterval(this.mobileVisualizationInterval);
+            this.mobileVisualizationInterval = null;
+        }
+    }
+    
+    updateMobileStats() {
+        // Sync statistics title
+        const desktopStatsTitle = document.getElementById('statsTitle');
+        const mobileStatsTitle = document.getElementById('mobile-statsTitle');
+        
+        if (desktopStatsTitle && mobileStatsTitle) {
+            mobileStatsTitle.textContent = desktopStatsTitle.textContent;
+        }
+        
+        // Sync PrimeFold stats
+        const desktopPrimefoldStats = document.getElementById('primefold-stats');
+        const mobilePrimefoldStats = document.getElementById('mobile-primefold-stats');
+        
+        if (desktopPrimefoldStats && mobilePrimefoldStats) {
+            // Copy the content structure
+            const statRows = desktopPrimefoldStats.querySelectorAll('.stat-row');
+            mobilePrimefoldStats.innerHTML = '';
+            
+            statRows.forEach(row => {
+                const clonedRow = row.cloneNode(true);
+                mobilePrimefoldStats.appendChild(clonedRow);
+            });
+        }
+        
+        // Sync PrimeGen stats
+        const desktopPrimegenStats = document.getElementById('primegen-stats');
+        const mobilePrimegenStats = document.getElementById('mobile-primegen-stats');
+        
+        if (desktopPrimegenStats && mobilePrimegenStats) {
+            // Copy the content structure
+            const statRows = desktopPrimegenStats.querySelectorAll('.stat-row');
+            mobilePrimegenStats.innerHTML = '';
+            
+            statRows.forEach(row => {
+                const clonedRow = row.cloneNode(true);
+                mobilePrimegenStats.appendChild(clonedRow);
+            });
+        }
+    }
+    
+    // Clean up all mobile intervals
+    cleanup() {
+        this.cleanupMobileVisualization();
+        if (this.mobileSyncInterval) {
+            clearInterval(this.mobileSyncInterval);
+            this.mobileSyncInterval = null;
+        }
+    }
+}
+
+// Mobile UI instance
+let mobileUI = null; 

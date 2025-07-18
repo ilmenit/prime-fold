@@ -7,6 +7,457 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <!-- Mobile Layout (hidden on desktop) -->
+    <div class="mobile-layout" id="mobileLayout">
+        <!-- Mobile Header -->
+        <div class="mobile-header" id="mobileHeader">
+            <h1>Prime Fold</h1>
+        </div>
+        
+        <!-- Mobile Controls -->
+        <div class="mobile-controls" id="mobileControls">
+            <div class="mobile-mode-selector">
+                <select id="mobileModeSelect" title="Choose between PrimeFold (2D embedding of primes) and PrimeGen (1D prime-generating functions).">
+                    <option value="primefold">PrimeFold (2D Embedding)</option>
+                    <option value="primegen">PrimeGen (1D Generation)</option>
+                </select>
+            </div>
+            <div class="mobile-start-button">
+                <button id="mobileGenerateBtn" class="btn primary" title="Start or stop the optimization process to find new functions.">Start</button>
+            </div>
+        </div>
+        
+        <!-- Mobile Visualization -->
+        <div class="mobile-visualization" id="mobileVisualization">
+            <canvas id="mobileVisualizationCanvas" width="800" height="600"></canvas>
+        </div>
+        
+        <!-- Mobile Bottom Section -->
+        <div class="mobile-bottom-section" id="mobileBottomSection">
+            <!-- Function Display (Always Visible) -->
+            <div class="mobile-function-display" id="mobileFunctionDisplay">
+                <div class="mobile-function-info">
+                    <div class="mobile-function-text">
+                        <span id="mobileFunctionLabel">f(n) =</span>
+                        <span id="mobileFunctionText">n * n + n + 41</span>
+                    </div>
+                    <div class="mobile-function-score">
+                        Score: <span id="mobileFunctionScore">0.000</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mobile Action Buttons -->
+            <div class="mobile-action-buttons" id="mobileActionButtons">
+                <!-- Export button removed from mobile view -->
+            </div>
+            
+            <!-- Mobile Section Content -->
+            <div class="mobile-section-content" id="generateContent">
+                <!-- Generate Functions content -->
+                <div class="mobile-section-inner">
+                    <h3>Generate Functions</h3>
+                    
+                    <!-- Fitness Function Section (PrimeFold mode only) -->
+                    <div class="section" id="mobile-fitness-section" style="display: none;">
+                        <h3>Fitness Function</h3>
+                        <form id="mobile-fitness-metrics-form">
+                            <div class="fitness-metric-row">
+                                <input type="checkbox" id="mobile-metric-areaCoverage" checked>
+                                <label for="mobile-metric-areaCoverage">Area Coverage</label>
+                                <input type="number" id="mobile-weight-areaCoverage" class="fitness-weight" min="0" max="1" step="0.01" value="0.50">
+                                <input type="number" id="mobile-threshold-areaCoverage" class="fitness-threshold" min="0" max="1" step="0.01" value="0.50" placeholder="Threshold">
+                            </div>
+                            <div class="fitness-metric-row">
+                                <input type="checkbox" id="mobile-metric-separation" checked>
+                                <label for="mobile-metric-separation">Separation</label>
+                                <input type="number" id="mobile-weight-separation" class="fitness-weight" min="0" max="1" step="0.01" value="0.25">
+                            </div>
+                            <div class="fitness-metric-row">
+                                <input type="checkbox" id="mobile-metric-contrast" checked>
+                                <label for="mobile-metric-contrast">Contrast</label>
+                                <input type="number" id="mobile-weight-contrast" class="fitness-weight" min="0" max="1" step="0.01" value="0.20">
+                            </div>
+                            <div class="fitness-metric-row">
+                                <input type="checkbox" id="mobile-metric-significance" checked>
+                                <label for="mobile-metric-significance">Significance</label>
+                                <input type="number" id="mobile-weight-significance" class="fitness-weight" min="0" max="1" step="0.01" value="0.10">
+                            </div>
+                            <div class="fitness-metric-row">
+                                <input type="checkbox" id="mobile-metric-specificity" checked>
+                                <label for="mobile-metric-specificity">Specificity</label>
+                                <input type="number" id="mobile-weight-specificity" class="fitness-weight" min="0" max="1" step="0.01" value="0.05">
+                            </div>
+                        </form>
+                        <button id="mobile-fitness-reset-btn" type="button">Reset to Default</button>
+                        
+                        <!-- Symmetry Option (PrimeFold mode only) -->
+                        <div class="fitness-option-row" id="mobile-symmetry-option" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="mobile-enforceSymmetry">
+                                <span class="checkmark"></span>
+                                Enforce Symmetry
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="param-row">
+                        <div class="param-group">
+                            <label for="mobile-algorithm">Algorithm:</label>
+                            <select id="mobile-algorithm">
+                                <option value="lahc">LAHC</option>
+                                <option value="ga">GA</option>
+                                <option value="sa">SA</option>
+                            </select>
+                        </div>
+                        <div class="param-group">
+                            <label for="mobile-iterations">Iterations:</label>
+                            <input type="number" id="mobile-iterations" value="500" min="100" max="2000">
+                        </div>
+                    </div>
+                    <div class="param-row">
+                        <div class="param-group">
+                            <label for="mobile-sampleSize">Sample Size:</label>
+                            <input type="number" id="mobile-sampleSize" value="200" min="50" max="500">
+                        </div>
+                    </div>
+                    <div class="param-row" id="mobile-lahc-params">
+                        <div class="param-group">
+                            <label for="mobile-historyLength">History Length:</label>
+                            <input type="number" id="mobile-historyLength" value="50" min="10" max="200">
+                        </div>
+                    </div>
+                    <div class="param-row" id="mobile-ga-params" style="display: none;">
+                        <div class="param-group">
+                            <label for="mobile-populationSize">Population Size:</label>
+                            <input type="number" id="mobile-populationSize" value="10" min="20" max="100">
+                        </div>
+                    </div>
+                    <div class="param-row" id="mobile-sa-params" style="display: none;">
+                        <div class="param-group">
+                            <label for="mobile-startTemp">Start Temperature:</label>
+                            <input type="number" id="mobile-startTemp" value="10" min="1" max="100" step="0.1">
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Section -->
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="mobile-progressFill"></div>
+                        </div>
+                        <div class="progress-text" id="mobile-progressText">0%</div>
+                    </div>
+                    <div class="score-display">
+                        <div>Last Score: <span id="mobile-currentScore">0.000</span></div>
+                        <div>Best: <span id="mobile-bestScore">0.000</span></div>
+                    </div>
+                    
+                    <!-- Last Generated -->
+                    <div class="last-generated-function">
+                        <strong>Last Generated:</strong>
+                        <span id="mobile-lastGeneratedLabel">f(n) =</span>
+                        <span id="mobile-lastGeneratedFunction">n * n + n + 41</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mobile-section-content" id="settingsContent">
+                <div class="mobile-section-inner">
+                    <h3>Settings</h3>
+                    
+                    <!-- Functions Section -->
+                    <div class="section">
+                        <h3>Functions</h3>
+                        <div class="function-selector" id="mobile-primefoldFunctionSelector" style="display: none;">
+                            <label for="mobile-primefoldFunctionSelect">Select Preset:</label>
+                            <select id="mobile-primefoldFunctionSelect">
+                                <option value="ulam-sind">Ulam Spiral (n * sind(n), n * cosd(n))</option>
+                                <option value="ulam-sin">Ulam Spiral (n * sin(n), n * cos(n))</option>
+                                <option value="sacks">Sacks Spiral (sqrt(n) * cos(n), sqrt(n) * sin(n))</option>
+                                <option value="sacks-sind">Sacks Spiral (sqrt(n) * cosd(n), sqrt(n) * sind(n))</option>
+                                <option value="custom">Custom Functions</option>
+                            </select>
+                        </div>
+                        <div class="function-selector" id="mobile-primegenFunctionSelector">
+                            <label for="mobile-functionSelect">Select Function:</label>
+                            <select id="mobile-functionSelect">
+                                <option value="n*n+1">n² + 1</option>
+                                <option value="n*n+n+41">n² + n + 41 (Euler)</option>
+                                <option value="n*n+n+17">n² + n + 17 (Legendre)</option>
+                                <option value="n*n-79*n+1601">n² - 79n + 1601</option>
+                                <option value="2*n*n-2*n+53089">2n² - 2n + 53089</option>
+                                <option value="36*n*n-810*n+2753">36n² - 810n + 2753 (A050268)</option>
+                                <option value="47*n*n-1701*n+10181">47n² - 1701n + 10181 (A050267)</option>
+                                <option value="103*n*n-4707*n+50383">103n² - 4707n + 50383</option>
+                                <option value="custom">Custom Function</option>
+                            </select>
+                        </div>
+                        <div class="function-display" id="mobile-primefoldFunctionDisplay" style="display: none;">
+                            <div class="function-pair">
+                                <div class="function-item">
+                                    <strong>f_x(n):</strong>
+                                    <div id="mobile-functionX" contenteditable="false">n * sin(n * pi / 100)</div>
+                                </div>
+                                <div class="function-item">
+                                    <strong>f_y(n):</strong>
+                                    <div id="mobile-functionY" contenteditable="false">n * cos(n * pi / 100)</div>
+                                </div>
+                                <div class="function-pair-stats">
+                                    <div>Score: <span id="mobile-primefoldCombinedScore">0.000</span> | Complexity: <span id="mobile-primefoldCombinedComplexity">1</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="function-display" id="mobile-primegenFunctionDisplay">
+                            <div class="main-function">
+                                <strong>Function:</strong>
+                                <span id="mobile-mainFunctionLabel">f(n) =</span>
+                                <div id="mobile-mainFunction" contenteditable="false">n * n + n + 41</div>
+                                <div>Score: <span id="mobile-mainFunctionScore">0.000</span> | Complexity: <span id="mobile-mainFunctionComplexity">1</span></div>
+                                <div>Unique Numbers: <span id="mobile-mainFunctionUniqueNumbers">0</span> | Unique Primes: <span id="mobile-mainFunctionUniquePrimes">0</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Visualization Options -->
+                    <div class="section">
+                        <h3>Visualization Options</h3>
+                        <div class="param-row">
+                            <div class="param-group">
+                                <label for="mobile-displayPoints">Display Points:</label>
+                                <input type="number" id="mobile-displayPoints" value="10000" min="20" max="100000">
+                            </div>
+                        </div>
+                        <div class="param-row">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="mobile-showNonPrimes" checked>
+                                <span class="checkmark"></span>
+                                Show Non-Primes
+                            </label>
+                        </div>
+                        <div class="param-row">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="mobile-scalePoints">
+                                <span class="checkmark"></span>
+                                Scale Points
+                            </label>
+                        </div>
+                        <div class="param-row">
+                            <div class="param-group">
+                                <label for="mobile-pointSize">Point Size:</label>
+                                <input type="number" id="mobile-pointSize" value="1.5" min="0.5" max="10" step="0.5">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mobile-section-content" id="statsContent">
+                <div class="mobile-section-inner">
+                    <h3 id="mobile-statsTitle">Statistics for Sample Size: 200</h3>
+                    <div id="mobile-primefold-stats" class="stats-display">
+                        <div class="stat-row">
+                            <div class="stat-item">
+                                <span class="stat-label">Area Coverage:</span>
+                                <span class="stat-value">0.000</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Separation:</span>
+                                <span class="stat-value">0.000</span>
+                            </div>
+                        </div>
+                        <div class="stat-row">
+                            <div class="stat-item">
+                                <span class="stat-label">Contrast:</span>
+                                <span class="stat-value">0.000</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Significance:</span>
+                                <span class="stat-value">0.000</span>
+                            </div>
+                        </div>
+                        <div class="stat-row">
+                            <div class="stat-item">
+                                <span class="stat-label">Specificity:</span>
+                                <span class="stat-value">0.000</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="mobile-primegen-stats" class="stats-display" style="display: none;">
+                        <div class="stat-row">
+                            <div class="stat-item">
+                                <span class="stat-label">Unique Numbers:</span>
+                                <span class="stat-value">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Unique Primes:</span>
+                                <span class="stat-value">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-row">
+                            <div class="stat-item">
+                                <span class="stat-label">Hit Ratio:</span>
+                                <span class="stat-value">0.000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Log Section -->
+            <div class="mobile-section-content" id="logContent">
+                <div class="mobile-section-inner">
+                    <h3>Log</h3>
+                    <div class="log-controls">
+                        <button id="mobile-clearLogBtn" class="btn small">Clear</button>
+                        <button id="mobile-copyLogBtn" class="btn small">Copy</button>
+                    </div>
+                    <div id="mobile-logContainer" class="log-container">
+                        <div class="log-entry">Application started. Ready to generate functions.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mobile-section-content" id="helpContent">
+                <div class="mobile-section-inner">
+                    <h3>Project Goal & Tool Purpose</h3>
+                    <p><strong>Prime Fold</strong> is a JavaScript web application for discovering mathematical functions that generate or embed prime numbers using evolutionary algorithms and advanced fitness functions. The goal is to help you explore, visualize, and evolve mathematical formulas that reveal interesting patterns in the distribution of prime numbers.</p>
+                    <ul>
+                        <li>Find functions that generate many unique primes (PrimeGen mode)</li>
+                        <li>Find pairs of functions that map primes to well-distributed 2D points (PrimeFold mode)</li>
+                        <li>Visualize and compare the structure of primes and composites</li>
+                        <li>Experiment with different optimization algorithms and fitness metrics</li>
+                    </ul>
+                    
+                    <h3>Modes</h3>
+                    <ul>
+                        <li><strong>PrimeFold Mode (2D Embedding):</strong> Enter or evolve two functions, <code>f_x(n)</code> and <code>f_y(n)</code>, to map numbers to 2D points. Primes and composites are visualized differently. This mode helps you discover spatial patterns and structures unique to primes. Example: <code>f_x(n) = n, f_y(n) = n^2</code> or simply <code>n, n^2</code>.</li>
+                        <li><strong>PrimeGen Mode (1D Generation):</strong> Enter or evolve a single function, <code>f(n)</code>, to generate numbers. The app visualizes which outputs are prime and how many unique primes are produced. Example: <code>f(n) = 2*n + 1</code>.</li>
+                    </ul>
+                    
+                    <h3>Why Use Different Modes?</h3>
+                    <ul>
+                        <li><strong>PrimeFold</strong> is for exploring geometric and spatial properties of primes in 2D, revealing patterns not visible in 1D sequences.</li>
+                        <li><strong>PrimeGen</strong> is for finding formulas that generate primes efficiently, useful for number theory and algorithmic exploration.</li>
+                    </ul>
+                    
+                    <h3>PrimeFold Mode (2D Embedding)</h3>
+                    <p>Finds functions f(n) and g(n) that map prime numbers to well-distributed 2D points with interesting patterns.</p>
+                    <ul>
+                        <li><strong>Separation:</strong> Measures spatial distance between prime and non-prime distributions</li>
+                        <li><strong>Contrast:</strong> Measures how much more organized primes are compared to non-primes</li>
+                        <li><strong>Significance:</strong> Ensures patterns are statistically meaningful vs random data</li>
+                        <li><strong>Specificity:</strong> Ensures patterns are unique to primes, not general number properties</li>
+                        <li><strong>Area Coverage:</strong> Prevents line generation and encourages 2D area-covering patterns</li>
+                        <li><strong>Symmetry:</strong> When enabled, ensures f(n) and g(n) are symmetrical transformations (e.g., sin/cos pairs)</li>
+                    </ul>
+                    
+                    <h3>PrimeGen Mode (1D Generation)</h3>
+                    <p>Finds function f(n) that generates many unique prime numbers.</p>
+                    <ul>
+                        <li><strong>Hit Ratio:</strong> Ratio of unique primes generated to total range</li>
+                        <li><strong>Unique Numbers:</strong> How many different numbers are generated</li>
+                        <li><strong>Unique Primes:</strong> How many of those are prime</li>
+                    </ul>
+                    
+                    <h3>Algorithms</h3>
+                    <ul>
+                        <li><strong>LAHC:</strong> Late Acceptance Hill Climbing - fast and effective</li>
+                        <li><strong>GA:</strong> Genetic Algorithm - good for complex functions</li>
+                        <li><strong>SA:</strong> Simulated Annealing - good exploration</li>
+                    </ul>
+                    
+                    <h3>Parameters</h3>
+                    <ul>
+                        <li><strong>Sample Size:</strong> Number of primes/composites to evaluate</li>
+                        <li><strong>Display Points:</strong> Number of points to show in visualization</li>
+                        <li><strong>Iterations:</strong> Number of optimization iterations</li>
+                    </ul>
+                    
+                    <h3>Writing Expressions</h3>
+                    <p>You can enter mathematical expressions to define functions for visualizing or generating primes. Expressions use the variable <code>n</code> and support a variety of operators, functions, and constants.</p>
+                    <ul>
+                        <li><strong>PrimeFold mode:</strong> Enter two expressions, separated by a comma, e.g. <code>f_x(n) = n, f_y(n) = n^2</code> or simply <code>n, n^2</code>.</li>
+                        <li><strong>PrimeGen mode:</strong> Enter a single expression, e.g. <code>f(n) = 2*n + 1</code> or just <code>2*n + 1</code>.</li>
+                    </ul>
+                    
+                    <h4>Operators</h4>
+                    <table style="width:100%; font-size:11px; margin-bottom:8px;">
+                        <tr><th>Operator</th><th>Description</th><th>Example</th></tr>
+                        <tr><td>+</td><td>Addition</td><td>n + 2</td></tr>
+                        <tr><td>-</td><td>Subtraction</td><td>n - 1</td></tr>
+                        <tr><td>*</td><td>Multiplication</td><td>2 * n</td></tr>
+                        <tr><td>/</td><td>Division</td><td>n / 3</td></tr>
+                        <tr><td>%</td><td>Modulo (remainder)</td><td>n % 2</td></tr>
+                        <tr><td>mod</td><td>Modulo (alternative)</td><td>n mod 2</td></tr>
+                        <tr><td>^</td><td>Exponentiation</td><td>n^2</td></tr>
+                    </table>
+                    
+                    <h4>Functions</h4>
+                    <table style="width:100%; font-size:11px; margin-bottom:8px;">
+                        <tr><th>Function</th><th>Description</th><th>Example</th></tr>
+                        <tr><td>sin(x)</td><td>Sine (radians)</td><td>sin(n)</td></tr>
+                        <tr><td>cos(x)</td><td>Cosine (radians)</td><td>cos(n)</td></tr>
+                        <tr><td>sind(x)</td><td>Sine (degrees)</td><td>sind(n)</td></tr>
+                        <tr><td>cosd(x)</td><td>Cosine (degrees)</td><td>cosd(n)</td></tr>
+                        <tr><td>sqrt(x)</td><td>Square root</td><td>sqrt(n)</td></tr>
+                        <tr><td>log(x)</td><td>Natural logarithm</td><td>log(n)</td></tr>
+                        <tr><td>abs(x)</td><td>Absolute value</td><td>abs(n-10)</td></tr>
+                        <tr><td>floor(x)</td><td>Floor (round down)</td><td>floor(n/2)</td></tr>
+                        <tr><td>ceil(x)</td><td>Ceiling (round up)</td><td>ceil(n/2)</td></tr>
+                        <tr><td>square(x)</td><td>Square (x^2)</td><td>square(n)</td></tr>
+                        <tr><td>cube(x)</td><td>Cube (x^3)</td><td>cube(n)</td></tr>
+                    </table>
+                    
+                    <h4>Constants</h4>
+                    <table style="width:100%; font-size:11px; margin-bottom:8px;">
+                        <tr><th>Name</th><th>Value</th></tr>
+                        <tr><td>pi</td><td>3.141592...</td></tr>
+                        <tr><td>e</td><td>2.718281...</td></tr>
+                        <tr><td>sqrt2</td><td>1.414213...</td></tr>
+                        <tr><td>phi</td><td>1.618033... (golden ratio)</td></tr>
+                    </table>
+                    
+                    <h4>Syntax Tips</h4>
+                    <ul>
+                        <li>Use parentheses <code>()</code> to group expressions: <code>(n + 1) * 2</code></li>
+                        <li>Both <code>^</code> and <code>square(x)</code>, <code>cube(x)</code> are supported for powers.</li>
+                        <li><code>mod</code> and <code>%</code> are equivalent for modulo.</li>
+                        <li>All functions take a single argument: <code>sin(n)</code>, <code>sqrt(n+1)</code>, etc.</li>
+                        <li>You can omit <code>f(n) =</code> or <code>f_x(n) =</code>/<code>f_y(n) =</code> and just write the expressions directly.</li>
+                        <li>Spaces are ignored.</li>
+                    </ul>
+                    
+                    <h4>Examples</h4>
+                    <b>PrimeFold (2D):</b>
+                    <ul>
+                        <li><code>f_x(n) = n, f_y(n) = n^2</code></li>
+                        <li><code>n, n^2</code></li>
+                        <li><code>sin(n), cos(n)</code></li>
+                        <li><code>n, n mod 5</code></li>
+                        <li><code>sqrt(n), log(n)</code></li>
+                    </ul>
+                    <b>PrimeGen (1D):</b>
+                    <ul>
+                        <li><code>f(n) = 2*n + 1</code></li>
+                        <li><code>n^2 + 1</code></li>
+                        <li><code>abs(n-10)</code></li>
+                        <li><code>cube(n) - 1</code></li>
+                    </ul>
+                    <p>If you enter an invalid expression, check the browser console for errors. For more details, see the README or the Expressions Guide in the repository.</p>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Section Toggles - Sticky at bottom -->
+        <div class="mobile-section-toggles" id="mobileSectionToggles">
+            <button class="mobile-toggle" data-section="generate"><span>⚙️</span>Generate</button>
+            <button class="mobile-toggle active" data-section="view" id="mobileViewBtn"><span>👁️</span>View</button>
+            <button class="mobile-toggle" data-section="settings"><span>🔧</span>Settings</button>
+            <button class="mobile-toggle" data-section="stats"><span>📊</span>Stats</button>
+            <button class="mobile-toggle" data-section="log"><span>📝</span>Log</button>
+            <button class="mobile-toggle" data-section="help"><span>❓</span>Help</button>
+        </div>
+    </div>
+
     <div class="main-container">
         <!-- Left Panel - Controls -->
         <div class="left-panel" id="leftPanel">
@@ -303,6 +754,16 @@
                     <div class="log-entry">Application started. Ready to generate functions.</div>
                 </div>
             </div>
+        </div>
+        
+        <!-- Mobile Section Toggles - Sticky at bottom -->
+        <div class="mobile-section-toggles" id="mobileSectionToggles">
+            <button class="mobile-toggle active" data-section="generate"><span>⚙️</span>Generate</button>
+            <button class="mobile-toggle" data-section="view" id="mobileViewBtn"><span>👁️</span>View</button>
+            <button class="mobile-toggle" data-section="settings"><span>🔧</span>Settings</button>
+            <button class="mobile-toggle" data-section="stats"><span>📊</span>Stats</button>
+            <button class="mobile-toggle" data-section="log"><span>📝</span>Log</button>
+            <button class="mobile-toggle" data-section="help"><span>❓</span>Help</button>
         </div>
     </div>
     
