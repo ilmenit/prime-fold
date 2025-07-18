@@ -2,6 +2,16 @@
 
 A JavaScript web application for discovering mathematical functions that generate or embed prime numbers using evolutionary algorithms and advanced fitness functions.
 
+## Screenshots
+
+**PrimeFold Mode (2D Embedding):**
+
+![PrimeFold Mode](screenshots/screen1.png)
+
+**PrimeGen Mode (1D Generation):**
+
+![PrimeGen Mode](screenshots/screen2.png)
+
 ## Features
 
 ### PrimeFold Mode (2D Embedding)

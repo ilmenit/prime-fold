@@ -10,14 +10,15 @@
     <div class="main-container">
         <!-- Left Panel - Controls -->
         <div class="left-panel" id="leftPanel">
-            <div class="header">
-                <h1>Prime Fold</h1>
-                <div class="mode-selector">
-                    <select id="modeSelect">
-                        <option value="primefold">PrimeFold (2D Embedding)</option>
-                        <option value="primegen">PrimeGen (1D Generation)</option>
-                    </select>
-                </div>
+            <div class="header" style="display: flex; align-items: center; gap: 10px;">
+                <h1 style="margin-bottom: 0;">Prime Fold</h1>
+                <button id="helpBtn" class="btn secondary" title="Show detailed help and usage instructions;">Help</button>
+            </div>
+            <div class="mode-selector">
+                <select id="modeSelect" title="Choose between PrimeFold (2D embedding of primes) and PrimeGen (1D prime-generating functions).">
+                    <option value="primefold">PrimeFold (2D Embedding)</option>
+                    <option value="primegen">PrimeGen (1D Generation)</option>
+                </select>
             </div>
             
             <!-- Functions Section -->
@@ -25,7 +26,7 @@
                 <h3>Functions</h3>
                 <div class="function-selector" id="primefoldFunctionSelector" style="display: none;">
                     <label for="primefoldFunctionSelect">Select Preset:</label>
-                    <select id="primefoldFunctionSelect">
+                    <select id="primefoldFunctionSelect" title="Choose a preset pair of functions for f_x(n) and f_y(n) to quickly explore known patterns.">
                         <option value="ulam-sind">Ulam Spiral (n * sind(n), n * cosd(n))</option>
                         <option value="ulam-sin">Ulam Spiral (n * sin(n), n * cos(n))</option>
                         <option value="sacks">Sacks Spiral (sqrt(n) * cos(n), sqrt(n) * sin(n))</option>
@@ -35,7 +36,7 @@
                 </div>
                 <div class="function-selector" id="primegenFunctionSelector">
                     <label for="functionSelect">Select Function:</label>
-                    <select id="functionSelect">
+                    <select id="functionSelect" title="Choose a preset or custom function f(n) to generate numbers. Primes will be highlighted in the visualization.">
                         <option value="n*n+1">n² + 1</option>
                         <option value="n*n+n+41">n² + n + 41 (Euler)</option>
                         <option value="n*n+n+17">n² + n + 17 (Legendre)</option>
@@ -47,28 +48,28 @@
                         <option value="custom">Custom Function</option>
                     </select>
                 </div>
-                <div class="function-display" id="primefoldFunctionDisplay" style="display: none;">
+                <div class="function-display" id="primefoldFunctionDisplay" style="display: none;" title="Edit or view the two functions f_x(n) and f_y(n) that map numbers to 2D points in PrimeFold mode.">
                     <div class="function-pair">
                         <div class="function-item">
-                            <strong>f_x(n):</strong>
-                            <div id="functionX" contenteditable="false">n * sin(n * pi / 100)</div>
+                            <strong title="The X coordinate mapping function for PrimeFold visualization.">f_x(n):</strong>
+                            <div id="functionX" contenteditable="false" title="Edit the function for the X coordinate in PrimeFold mode.">n * sin(n * pi / 100)</div>
                         </div>
                         <div class="function-item">
-                            <strong>f_y(n):</strong>
-                            <div id="functionY" contenteditable="false">n * cos(n * pi / 100)</div>
+                            <strong title="The Y coordinate mapping function for PrimeFold visualization.">f_y(n):</strong>
+                            <div id="functionY" contenteditable="false" title="Edit the function for the Y coordinate in PrimeFold mode.">n * cos(n * pi / 100)</div>
                         </div>
-                        <div class="function-pair-stats">
-                            <div>Score: <span id="primefoldCombinedScore">0.000</span> | Complexity: <span id="primefoldCombinedComplexity">1</span></div>
+                        <div class="function-pair-stats" title="Shows the combined score and complexity for the current pair of functions.">
+                            <div>Score: <span id="primefoldCombinedScore" title="How well the current functions separate primes from non-primes and cover the area.">0.000</span> | Complexity: <span id="primefoldCombinedComplexity" title="A measure of how mathematically complex the current functions are.">1</span></div>
                         </div>
                     </div>
                 </div>
                 <div class="function-display" id="primegenFunctionDisplay">
-                    <div class="main-function">
-                        <strong>Function:</strong>
-                        <span id="mainFunctionLabel">f(n) =</span>
-                        <div id="mainFunction" contenteditable="false">n * n + n + 41</div>
-                        <div>Score: <span id="mainFunctionScore">0.000</span> | Complexity: <span id="mainFunctionComplexity">1</span></div>
-                        <div>Unique Numbers: <span id="mainFunctionUniqueNumbers">0</span> | Unique Primes: <span id="mainFunctionUniquePrimes">0</span></div>
+                    <div class="main-function" title="Edit or view the function f(n) that generates numbers for PrimeGen mode. Primes are highlighted in the visualization.">
+                        <strong title="The function used to generate numbers. Primes are highlighted.">Function:</strong>
+                        <span id="mainFunctionLabel" title="The label for the main function f(n)">f(n) =</span>
+                        <div id="mainFunction" contenteditable="false" title="Edit the function for PrimeGen mode. Use n as the variable.">n * n + n + 41</div>
+                        <div>Score: <span id="mainFunctionScore" title="How well the current function generates primes.">0.000</span> | Complexity: <span id="mainFunctionComplexity" title="A measure of how mathematically complex the current function is.">1</span></div>
+                        <div>Unique Numbers: <span id="mainFunctionUniqueNumbers" title="How many different numbers are generated by f(n) in the current range.">0</span> | Unique Primes: <span id="mainFunctionUniquePrimes" title="How many unique primes are generated by f(n) in the current range.">0</span></div>
                     </div>
                 </div>
             </div>
@@ -77,38 +78,38 @@
             <div class="section">
                 <h3>Generate Functions</h3>
                 <!-- Fitness Function Section (PrimeFold mode only) -->
-                <div class="section" id="fitness-section" style="display: none;">
+                <div class="section" id="fitness-section" style="display: none;" title="Fitness Functions: Control how the quality of patterns is measured and optimized. Adjust weights and thresholds to emphasize different pattern features.">
                     <h3>Fitness Function</h3>
                     <form id="fitness-metrics-form">
                         <div class="fitness-metric-row">
                             <input type="checkbox" id="metric-areaCoverage" checked>
                             <label for="metric-areaCoverage">Area Coverage</label>
-                            <input type="number" id="weight-areaCoverage" class="fitness-weight" min="0" max="1" step="0.01" value="0.50" title="Weight: How much this metric influences the final fitness score (0-1). Higher values = more important.&#10;&#10;Area Coverage = Hull Area × Isotropy × Scale Balance&#10;&#10;Hull Area: Convex hull ratio (0-1)&#10;Isotropy: PCA-based non-linearity measure&#10;Scale Balance: Penalizes extreme range imbalances&#10;&#10;Blocks lines, encourages 2D coverage">
-                            <input type="number" id="threshold-areaCoverage" class="fitness-threshold" min="0" max="1" step="0.01" value="0.50" placeholder="Threshold" title="Minimum required area coverage score. Patterns below this threshold get very low fitness scores.&#10;&#10;Threshold acts as prerequisite gate - only patterns meeting this minimum get evaluated further.">
+                            <input type="number" id="weight-areaCoverage" class="fitness-weight" min="0" max="1" step="0.01" value="0.50" title="Weight: How much this metric influences the final fitness score (0-1). Higher values = more important. Area Coverage = Hull Area × Isotropy × Scale Balance">
+                            <input type="number" id="threshold-areaCoverage" class="fitness-threshold" min="0" max="1" step="0.01" value="0.50" placeholder="Threshold" title="Minimum required area coverage score. Patterns below this threshold get very low fitness scores.">
                         </div>
                         <div class="fitness-metric-row">
                             <input type="checkbox" id="metric-separation" checked>
                             <label for="metric-separation">Separation</label>
-                            <input type="number" id="weight-separation" class="fitness-weight" min="0" max="1" step="0.01" value="0.25" title="Weight: How much this metric influences the final fitness score (0-1). Higher values = more important.&#10;&#10;Separation = Avg distance (primes → nearest composites)&#10;&#10;Measures spatial separation between prime and composite distributions&#10;Higher scores = primes are further from composites&#10;Uses nearest neighbor distance calculation&#10;&#10;Ensures prime patterns are distinct from composite patterns">
+                            <input type="number" id="weight-separation" class="fitness-weight" min="0" max="1" step="0.01" value="0.25" title="Weight: How much this metric influences the final fitness score (0-1). Higher values = more important. Separation = Avg distance (primes → nearest composites)">
                         </div>
                         <div class="fitness-metric-row">
                             <input type="checkbox" id="metric-contrast" checked>
                             <label for="metric-contrast">Contrast</label>
-                            <input type="number" id="weight-contrast" class="fitness-weight" min="0" max="1" step="0.01" value="0.20" title="Weight: How much this metric influences the final fitness score (0-1). Higher values = more important.&#10;&#10;Contrast = Prime Regularity / Composite Regularity&#10;&#10;Measures local density variance in both distributions&#10;Higher scores = primes are more organized than composites&#10;Uses coefficient of variation of local point densities&#10;&#10;Ensures prime patterns show more structure than composite patterns">
+                            <input type="number" id="weight-contrast" class="fitness-weight" min="0" max="1" step="0.01" value="0.20" title="Weight: How much this metric influences the final fitness score (0-1). Higher values = more important. Contrast = Prime Regularity / Composite Regularity">
                         </div>
                         <div class="fitness-metric-row">
                             <input type="checkbox" id="metric-significance" checked>
                             <label for="metric-significance">Significance</label>
-                            <input type="number" id="weight-significance" class="fitness-weight" min="0" max="1" step="0.01" value="0.10" title="Weight: How much this metric influences the final fitness score (0-1). Higher values = more important.&#10;&#10;Significance = (Prime vs Random) - (Composite vs Random)&#10;&#10;Compares distributions to random baseline&#10;Higher scores = primes differ more from random than composites&#10;Uses Jensen-Shannon divergence and spatial statistics&#10;&#10;Ensures patterns are statistically significant, not random">
+                            <input type="number" id="weight-significance" class="fitness-weight" min="0" max="1" step="0.01" value="0.10" title="Weight: How much this metric influences the final fitness score (0-1). Higher values = more important. Significance = (Prime vs Random) - (Composite vs Random)">
                         </div>
                         <div class="fitness-metric-row">
                             <input type="checkbox" id="metric-specificity" checked>
                             <label for="metric-specificity">Specificity</label>
-                            <input type="number" id="weight-specificity" class="fitness-weight" min="0" max="1" step="0.01" value="0.05" title="Weight: How much this metric influences the final fitness score (0-1). Higher values = more important.&#10;&#10;Specificity = Clustering Quality + Pattern Uniqueness&#10;&#10;Measures how well primes cluster and form unique patterns&#10;Higher scores = more distinctive prime-specific patterns&#10;Uses clustering analysis and pattern detection algorithms&#10;&#10;Ensures patterns are unique to primes, not general number properties">
+                            <input type="number" id="weight-specificity" class="fitness-weight" min="0" max="1" step="0.01" value="0.05" title="Weight: How much this metric influences the final fitness score (0-1). Higher values = more important. Specificity = Clustering Quality + Pattern Uniqueness">
                         </div>
                     </form>
                     <div id="fitness-formula-preview" class="fitness-formula-preview"></div>
-                    <button id="fitness-reset-btn" type="button">Reset to Default</button>
+                    <button id="fitness-reset-btn" type="button" title="Reset all fitness weights and thresholds to their default values.">Reset to Default</button>
                     <div id="fitness-warning" class="fitness-warning" style="color: #b00; margin-top: 8px; display: none;"></div>
                     
                     <!-- Symmetry Option (PrimeFold mode only) -->
@@ -124,7 +125,7 @@
                 <div class="param-row">
                     <div class="param-group">
                         <label for="algorithm">Algorithm:</label>
-                        <select id="algorithm" title="LAHC: Fast hill climbing with memory, good for most cases&#10;GA: Genetic algorithm, explores complex solution spaces&#10;SA: Simulated annealing, good for escaping local optima">
+                        <select id="algorithm" title="Choose the optimization algorithm: LAHC (fast hill climbing), GA (genetic algorithm), or SA (simulated annealing).">
                             <option value="lahc">LAHC</option>
                             <option value="ga">GA</option>
                             <option value="sa">SA</option>
@@ -132,53 +133,53 @@
                     </div>
                     <div class="param-group">
                         <label for="iterations">Iterations:</label>
-                        <input type="number" id="iterations" value="500" min="100" max="2000" title="Number of optimization steps. Higher values = better results but longer runtime. 500-1000 is usually sufficient.">
+                        <input type="number" id="iterations" value="500" min="100" max="2000" title="Number of optimization steps. Higher values = better results but longer runtime.">
                     </div>
                 </div>
                 <div class="param-row">
                     <div class="param-group">
                         <label for="sampleSize">Sample Size:</label>
-                        <input type="number" id="sampleSize" value="200" min="50" max="500" style="width: 80px;" title="Number of prime/composite numbers to evaluate. Larger samples = more accurate but slower. 200-300 is a good balance.">
+                        <input type="number" id="sampleSize" value="200" min="50" max="500" style="width: 80px;" title="Number of prime/composite numbers to evaluate. Larger samples = more accurate but slower.">
                     </div>
                 </div>
                 <div class="param-row" id="lahc-params">
                     <div class="param-group">
                         <label for="historyLength">History Length:</label>
-                        <input type="number" id="historyLength" value="50" min="10" max="200" title="LAHC memory size. Higher values = more exploration but slower convergence. 30-100 is typical.">
+                        <input type="number" id="historyLength" value="50" min="10" max="200" title="LAHC memory size. Higher values = more exploration but slower convergence.">
                     </div>
                 </div>
                 <div class="param-row" id="ga-params" style="display: none;">
                     <div class="param-group">
                         <label for="populationSize">Population Size:</label>
-                        <input type="number" id="populationSize" value="10" min="20" max="100" title="Number of candidate solutions in genetic algorithm. Larger populations = better exploration but slower. 30-80 is effective.">
+                        <input type="number" id="populationSize" value="10" min="20" max="100" title="Number of candidate solutions in genetic algorithm. Larger populations = better exploration but slower.">
                     </div>
                 </div>
                 <div class="param-row" id="sa-params" style="display: none;">
                     <div class="param-group">
                         <label for="startTemp">Start Temperature:</label>
-                        <input type="number" id="startTemp" value="10" min="1" max="100" step="0.1" title="Initial temperature for simulated annealing. Higher values = more random exploration early on. 5-20 is typical.">
+                        <input type="number" id="startTemp" value="10" min="1" max="100" step="0.1" title="Initial temperature for simulated annealing. Higher values = more random exploration early on.">
                     </div>
                 </div>
                 
                 <!-- Start/Stop button moved here -->
                 <div class="button-group">
-                    <button id="generateBtn" class="btn primary">Start</button>
+                    <button id="generateBtn" class="btn primary" title="Start or stop the optimization process to find new functions.">Start</button>
                 </div>
                 
                 <!-- Progress Section moved here -->
-                <div class="progress-container">
+                <div class="progress-container" title="Shows the progress of the current optimization or generation process.">
                     <div class="progress-bar">
                         <div class="progress-fill" id="progressFill"></div>
                     </div>
                     <div class="progress-text" id="progressText">0%</div>
                 </div>
-                <div class="score-display">
+                <div class="score-display" title="Displays the last and best scores achieved during optimization or function search.">
                     <div>Last Score: <span id="currentScore">0.000</span></div>
                     <div>Best: <span id="bestScore">0.000</span></div>
                 </div>
                 
                 <!-- Last Generated moved here -->
-                <div class="last-generated-function">
+                <div class="last-generated-function" title="Shows the most recently generated or selected function.">
                     <strong>Last Generated:</strong>
                     <span id="lastGeneratedLabel">f(n) =</span>
                     <span id="lastGeneratedFunction">n * n + n + 41</span>
@@ -187,7 +188,7 @@
             
             <!-- Statistics Section -->
             <div class="section">
-                <h3 id="statsTitle">Statistics for Sample Size: 200</h3>
+                <h3 id="statsTitle" title="Statistics for the current sample size and function.">Statistics for Sample Size: 200</h3>
                 <div id="primefold-stats" class="stats-display">
                     <div class="stat-row">
                         <div class="stat-item">
@@ -241,7 +242,6 @@
                 <h3>Actions</h3>
                 <div class="button-group">
                     <button id="exportBtn" class="btn secondary" title="Export the current best function to clipboard for use in other applications.">Export Function</button>
-                    <button id="helpBtn" class="btn secondary" title="Show detailed help and usage instructions.">Help</button>
                 </div>
             </div>
         </div>
@@ -258,15 +258,15 @@
                         <div class="visualization-options">
                             <div class="display-points-control">
                                 <label for="displayPoints">Display Points:</label>
-                                <input type="number" id="displayPoints" value="10000" min="20" max="100000" title="Number of points to render in visualization. Higher values = more detail but slower performance. 5000-20000 is usually good.">
+                                <input type="number" id="displayPoints" value="10000" min="20" max="100000" title="Number of points to render in visualization. Higher values = more detail but slower performance.">
                             </div>
                             <label class="checkbox-label">
-                                <input type="checkbox" id="showNonPrimes" checked title="Show composite numbers as gray points. Uncheck to focus only on prime patterns.">
+                                <input type="checkbox" id="showNonPrimes" checked title="Show composite (non-prime) numbers as gray points. Uncheck to focus only on prime patterns.">
                                 <span class="checkmark"></span>
                                 Show Non-Primes
                             </label>
                             <label class="checkbox-label">
-                                <input type="checkbox" id="scalePoints" title="Scale point sizes based on their values. Larger points = larger function values.">
+                                <input type="checkbox" id="scalePoints" title="Scale point sizes based on their values. Larger points = larger function values. Uncheck for uniform point size.">
                                 <span class="checkmark"></span>
                                 Scale Points
                             </label>
@@ -312,6 +312,24 @@
             <span class="close">&times;</span>
             <h2>Prime Fold Finder Help</h2>
             <div class="help-content">
+                <h3>Project Goal & Tool Purpose</h3>
+                <p><strong>Prime Fold</strong> is a JavaScript web application for discovering mathematical functions that generate or embed prime numbers using evolutionary algorithms and advanced fitness functions. The goal is to help you explore, visualize, and evolve mathematical formulas that reveal interesting patterns in the distribution of prime numbers.</p>
+                <ul>
+                    <li>Find functions that generate many unique primes (PrimeGen mode)</li>
+                    <li>Find pairs of functions that map primes to well-distributed 2D points (PrimeFold mode)</li>
+                    <li>Visualize and compare the structure of primes and composites</li>
+                    <li>Experiment with different optimization algorithms and fitness metrics</li>
+                </ul>
+                <h3>Modes</h3>
+                <ul>
+                    <li><strong>PrimeFold Mode (2D Embedding):</strong> Enter or evolve two functions, <code>f_x(n)</code> and <code>f_y(n)</code>, to map numbers to 2D points. Primes and composites are visualized differently. This mode helps you discover spatial patterns and structures unique to primes. Example: <code>f_x(n) = n, f_y(n) = n^2</code> or simply <code>n, n^2</code>.</li>
+                    <li><strong>PrimeGen Mode (1D Generation):</strong> Enter or evolve a single function, <code>f(n)</code>, to generate numbers. The app visualizes which outputs are prime and how many unique primes are produced. Example: <code>f(n) = 2*n + 1</code>.</li>
+                </ul>
+                <h3>Why Use Different Modes?</h3>
+                <ul>
+                    <li><strong>PrimeFold</strong> is for exploring geometric and spatial properties of primes in 2D, revealing patterns not visible in 1D sequences.</li>
+                    <li><strong>PrimeGen</strong> is for finding formulas that generate primes efficiently, useful for number theory and algorithmic exploration.</li>
+                </ul>
                 <h3>PrimeFold Mode (2D Embedding)</h3>
                 <p>Finds functions f(n) and g(n) that map prime numbers to well-distributed 2D points with interesting patterns.</p>
                 <ul>

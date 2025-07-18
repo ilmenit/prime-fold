@@ -610,7 +610,7 @@ class Visualization {
             this.ctx.font = '11px Arial';
             this.ctx.textAlign = 'right';
             const labelText = worldY >= 0 ? `+${worldY.toFixed(1)}` : worldY.toFixed(1);
-            this.ctx.fillText(labelText, padding - 5, screenY + 4);
+            this.ctx.fillText(labelText, padding + 30, screenY + 4);
         }
         
         // Restore context state
