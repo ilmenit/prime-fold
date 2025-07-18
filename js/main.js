@@ -778,13 +778,17 @@ class PrimeFoldApp {
         document.getElementById('progressText').textContent = '0%';
         document.getElementById('currentScore').textContent = '0.000';
         document.getElementById('bestScore').textContent = '0.000';
+        
+        // Set function selectors to "Custom Function" to indicate generation is active
         if (this.currentMode === 'primefold') {
+            document.getElementById('primefoldFunctionSelect').value = 'custom';
             // Reset functions to 'n' for PrimeFold mode when starting optimization
             document.getElementById('functionX').textContent = 'n';
             document.getElementById('functionY').textContent = 'n';
             document.getElementById('primefoldCombinedScore').textContent = '0.000';
             document.getElementById('primefoldCombinedComplexity').textContent = '1';
         } else {
+            document.getElementById('functionSelect').value = 'custom';
             // Reset function to 'n' for PrimeGen mode when starting optimization
             document.getElementById('mainFunction').textContent = 'n';
             document.getElementById('mainFunctionScore').textContent = '0.000';
@@ -855,6 +859,8 @@ class PrimeFoldApp {
             document.getElementById('functionX').contentEditable = false;
             document.getElementById('functionY').contentEditable = false;
             document.getElementById('lastGeneratedFunction').textContent = `f_x(n) = ${defaultX}, f_y(n) = ${defaultY}`;
+            // Reset function selector to default for PrimeFold mode
+            document.getElementById('primefoldFunctionSelect').value = 'ulam-sind';
             // Reset Display Points for PrimeFold mode
             document.getElementById('displayPoints').value = '10000';
         } else {
