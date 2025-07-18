@@ -58,16 +58,6 @@ js-fold/
 ├── docs/                  # Documentation files
 ```
 
-## Documentation
-
-- All documentation and analysis files are in `docs/`
-- Example: `docs/AREA_COVERAGE_METRIC.md`, `docs/IMPLEMENTATION_SUMMARY.md`, etc.
-
-## Tests
-
-- All test and validation HTML files are in `tests/`
-- Example: `tests/test_area_coverage.html`, `tests/validation_test.html`, etc.
-
 ## Technical Details
 
 - **Expression Trees**: Mathematical expressions are represented as trees for easy manipulation
@@ -77,21 +67,7 @@ js-fold/
 - **Export Functionality**: Save discovered functions as text files
 - **Deduplication**: Automatic rejection of duplicate functions during optimization
 
-## Browser Compatibility
-
-- Chrome 60+
-- Firefox 55+
-- Safari 12+
-- Edge 79+
-
-## Development
-
-To modify or extend the application:
-
-1. **Adding New Evaluators**: Extend the `Evaluators` class in `evaluators.js`
-2. **Adding New Algorithms**: Implement new optimizer classes in `optimizers.js`
-3. **Adding Visualizations**: Extend the `Visualization` class in `canvas.js`
-4. **UI Changes**: Modify `index.html` and `style.css`
+It's a static page, can be run locally from index.html.
 
 ## Help
 
@@ -118,8 +94,4 @@ For more details on metrics, optimization, and implementation, see the `docs/` f
 
 ## License
 
-This project is part of the PrimeFold research initiative.
-
-## Contributing
-
-... (rest of your README as before) ... 
+This project is licensed under the MIT License.
