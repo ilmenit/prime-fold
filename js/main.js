@@ -272,7 +272,23 @@ class PrimeFoldApp {
         // Show/hide visualization options based on mode
         const visualizationOptions = document.querySelector('.visualization-options');
         if (visualizationOptions) {
-            visualizationOptions.style.display = (mode === 'primefold') ? 'flex' : 'none';
+            if (mode === 'primefold') {
+                visualizationOptions.style.display = 'flex';
+                // Show all controls in PrimeFold
+                Array.from(visualizationOptions.children).forEach(child => {
+                    child.style.display = '';
+                });
+            } else {
+                visualizationOptions.style.display = 'flex'; // Show the container
+                // Only show Display Points in PrimeGen
+                Array.from(visualizationOptions.children).forEach(child => {
+                    if (child.classList.contains('display-points-control')) {
+                        child.style.display = '';
+                    } else {
+                        child.style.display = 'none';
+                    }
+                });
+            }
         }
         
         // Update function display with default functions
