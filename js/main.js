@@ -1719,6 +1719,7 @@ class MobileUI {
         this.setupMobileEventHandlers();
         this.syncMobileDesktop();
         this.setupMobileVisualization();
+        this.setupMobileViewportHandling();
         
         // Set View as the default section for better mobile experience
         this.showSection('view');
@@ -2027,7 +2028,18 @@ class MobileUI {
             document.querySelectorAll('.mobile-section-content').forEach(content => {
                 content.classList.remove('active');
             });
-            document.getElementById(sectionName + 'Content').classList.add('active');
+            const activeContent = document.getElementById(sectionName + 'Content');
+            if (activeContent) {
+                activeContent.classList.add('active');
+                
+                // 🔧 FIX: Restore scroll position or reset to top
+                const savedScrollPosition = this.sectionScrollPositions[sectionName];
+                if (savedScrollPosition !== undefined) {
+                    activeContent.scrollTop = savedScrollPosition;
+                } else {
+                    activeContent.scrollTop = 0;
+                }
+            }
             
             this.currentSection = sectionName;
         }
@@ -2242,6 +2254,62 @@ class MobileUI {
         }
     }
     
+    setupMobileViewportHandling() {
+        // Handle mobile viewport changes (address bar hiding/showing)
+        let lastViewportHeight = window.innerHeight;
+        
+        const handleViewportChange = () => {
+            const currentViewportHeight = window.innerHeight;
+            
+            // Only handle significant changes (more than 50px difference)
+            if (Math.abs(currentViewportHeight - lastViewportHeight) > 50) {
+                console.log(`Mobile viewport height changed from ${lastViewportHeight} to ${currentViewportHeight}`);
+                
+                // Force a resize of the mobile layout
+                const mobileLayout = document.querySelector('.mobile-layout');
+                if (mobileLayout) {
+                    // Trigger a resize event to recalculate layout
+                    window.dispatchEvent(new Event('resize'));
+                    
+                    // Force canvas resize if mobile visualization exists
+                    if (this.mobileVisualization) {
+                        this.mobileVisualization.resize();
+                    }
+                }
+                
+                lastViewportHeight = currentViewportHeight;
+            }
+        };
+        
+        // Listen for resize events (includes viewport changes on mobile)
+        window.addEventListener('resize', handleViewportChange);
+        
+        // Also listen for orientation changes
+        window.addEventListener('orientationchange', () => {
+            // Delay to allow orientation change to complete
+            setTimeout(handleViewportChange, 100);
+        });
+        
+        // Store the handler for cleanup
+        this.viewportChangeHandler = handleViewportChange;
+        
+        // 🔧 FIX: Handle scroll restoration for mobile sections
+        this.setupMobileScrollHandling();
+    }
+    
+    setupMobileScrollHandling() {
+        // Store scroll positions for each section
+        this.sectionScrollPositions = {};
+        
+        // Listen for scroll events on mobile section content
+        document.addEventListener('scroll', (e) => {
+            if (e.target.classList.contains('mobile-section-content')) {
+                const sectionName = e.target.id.replace('Content', '');
+                this.sectionScrollPositions[sectionName] = e.target.scrollTop;
+            }
+        }, { passive: true });
+    }
+    
     syncMobileVisualization() {
         if (this.mobileVisualization && this.app.visualization) {
             try {
@@ -2332,6 +2400,13 @@ class MobileUI {
         if (this.mobileSyncInterval) {
             clearInterval(this.mobileSyncInterval);
             this.mobileSyncInterval = null;
+        }
+        
+        // Clean up viewport change handler
+        if (this.viewportChangeHandler) {
+            window.removeEventListener('resize', this.viewportChangeHandler);
+            window.removeEventListener('orientationchange', this.viewportChangeHandler);
+            this.viewportChangeHandler = null;
         }
     }
 }

@@ -1167,10 +1167,12 @@ input[type="number"]::-ms-inner-spin-button {
     display: none;
     flex-direction: column;
     height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile browsers */
     width: 100vw;
     background: rgba(26, 26, 46, 0.95);
     backdrop-filter: blur(10px);
     position: relative; /* Required for absolutely positioned children */
+    overflow: hidden; /* Prevent any overflow that might hide buttons */
 }
 
 /* Mobile Header */
@@ -1237,6 +1239,8 @@ input[type="number"]::-ms-inner-spin-button {
     background: #1a1a2a;
     padding: 8px;
     position: relative;
+    /* Ensure proper resizing on mobile */
+    overflow: hidden;
 }
 
 #mobileVisualizationCanvas {
@@ -1248,6 +1252,8 @@ input[type="number"]::-ms-inner-spin-button {
     max-height: 100%;
     width: auto;
     height: auto;
+    /* Ensure canvas resizes properly on mobile */
+    object-fit: contain;
 }
 
 /* Mobile Bottom Section */
@@ -1263,6 +1269,9 @@ input[type="number"]::-ms-inner-spin-button {
     background: #2a2a3a;
     border-bottom: 1px solid #3d3d4f;
     flex-shrink: 0; /* Prevent shrinking */
+    /* Ensure it doesn't interfere with scrolling */
+    position: relative;
+    z-index: 1;
 }
 
 .mobile-function-info {
@@ -1320,6 +1329,8 @@ input[type="number"]::-ms-inner-spin-button {
     flex-wrap: wrap;
     gap: 4px;
     padding: 8px 12px;
+    padding-bottom: 8px; /* Fallback for browsers without env() support */
+    padding-bottom: max(8px, env(safe-area-inset-bottom)); /* Account for safe areas */
     background: #2a2a3a;
     border-top: 1px solid #3d3d4f;
     position: fixed; /* Changed to fixed for better positioning */
@@ -1378,7 +1389,10 @@ input[type="number"]::-ms-inner-spin-button {
     border-bottom: 1px solid #3d3d4f;
     overflow-y: auto;
     overflow-x: hidden;
-    flex-shrink: 0;
+    flex: 1; /* Allow content to fill available space */
+    min-height: 0; /* Allow proper flex shrinking */
+    /* Ensure no gap between content and buttons */
+    margin-bottom: 0;
 }
 
 .mobile-section-content.active {
@@ -1387,6 +1401,9 @@ input[type="number"]::-ms-inner-spin-button {
 
 .mobile-section-inner {
     padding: 12px;
+    /* Ensure content can scroll properly */
+    min-height: 100%;
+    box-sizing: border-box;
 }
 
 .mobile-section-inner h3 {
@@ -1478,6 +1495,17 @@ input[type="number"]::-ms-inner-spin-button {
     margin-bottom: 6px;
 }
 
+/* Ensure long content doesn't break the layout */
+.mobile-section-inner {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Handle very long content in mobile sections */
+.mobile-section-content.active {
+    max-height: none; /* Allow content to be as tall as needed */
+}
+
 /* Mobile scrollbar styling */
 .mobile-section-content::-webkit-scrollbar {
     width: 4px;
@@ -1496,6 +1524,12 @@ input[type="number"]::-ms-inner-spin-button {
     background: #4d4d5f;
 }
 
+/* Ensure scrolling works on all mobile browsers */
+.mobile-section-content {
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    scroll-behavior: smooth; /* Smooth scrolling on modern browsers */
+}
+
 /* Mobile View Mode - Hide sections and expand visualization */
 .mobile-layout.view-mode .mobile-section-content {
     display: none !important;
@@ -1508,6 +1542,7 @@ input[type="number"]::-ms-inner-spin-button {
 .mobile-layout.view-mode .mobile-visualization {
     flex: 1;
     height: calc(100vh - 200px); /* Account for header, controls, function display, and sticky buttons */
+    height: calc(100dvh - 200px); /* Use dynamic viewport height */
 }
 
 .mobile-layout.view-mode #mobileVisualizationCanvas {
@@ -1515,18 +1550,21 @@ input[type="number"]::-ms-inner-spin-button {
 }
 
 .mobile-layout.view-mode .mobile-bottom-section {
-    padding-bottom: 80px; /* Space for sticky buttons even in view mode */
+    flex: 0; /* Don't grow in view mode */
+    padding-bottom: 80px; /* Fallback for browsers without env() support */
+    padding-bottom: calc(80px + env(safe-area-inset-bottom)); /* Space for sticky buttons + safe area */
 }
 
 /* Mobile Bottom Section - Content area above buttons */
 .mobile-bottom-section {
-    flex-shrink: 0;
+    flex: 1; /* Allow this section to grow and shrink */
     background: #1e1e2e;
     border-top: 1px solid #3d3d4f;
     display: flex;
     flex-direction: column;
     min-height: 0; /* Allow proper flex shrinking */
-    padding-bottom: 80px; /* Space for sticky buttons */
+    padding-bottom: 80px; /* Fallback for browsers without env() support */
+    padding-bottom: calc(80px + env(safe-area-inset-bottom)); /* Space for sticky buttons + safe area */
 }
 
 /* Mobile Action Buttons - Hidden in mobile view */
@@ -1540,6 +1578,29 @@ input[type="number"]::-ms-inner-spin-button {
 /* Ensure mobile layout doesn't overflow viewport */
 .mobile-layout {
     overflow: hidden; /* Prevent any overflow that might hide buttons */
+    /* Ensure the layout works with mobile browser UI changes */
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+/* Additional mobile viewport handling */
+@supports (height: 100dvh) {
+    .mobile-layout {
+        height: 100dvh;
+    }
+    
+    .mobile-layout.view-mode .mobile-visualization {
+        height: calc(100dvh - 200px);
+    }
+}
+
+/* Fallback for older mobile browsers */
+@supports not (height: 100dvh) {
+    .mobile-layout {
+        height: 100vh;
+        /* Additional fallback for mobile browsers with dynamic toolbars */
+        height: -webkit-fill-available;
+    }
 }
 
 /* Mobile toggle button styling - icon over text */
@@ -1575,7 +1636,8 @@ input[type="number"]::-ms-inner-spin-button {
 /* Extra small mobile devices */
 @media (max-width: 360px) {
     .mobile-bottom-section {
-        padding-bottom: 85px; /* More space for buttons on very small screens */
+        padding-bottom: 85px; /* Fallback for browsers without env() support */
+        padding-bottom: calc(85px + env(safe-area-inset-bottom)); /* More space for buttons on very small screens */
     }
     
     .mobile-function-text {
